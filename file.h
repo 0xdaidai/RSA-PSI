@@ -224,7 +224,7 @@ char *receive_File(int client) {
     char *p = (char*)"文件保存完毕";
     printf("%s\n",p);
   }
-  close(client);
+  // close(client);
   return pathname;
 }
 
