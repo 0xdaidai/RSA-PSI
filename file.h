@@ -57,6 +57,7 @@ int get_File_Num(char* pathname) {
 }
 
 int pack_send_File(int clientSocket, FILE* fp) {
+  char temp[100] = {0};
   char send_buf[BUFFER_SIZE] = {0};
   int len_file, len_block;
   int totalBlock;
@@ -71,10 +72,10 @@ int pack_send_File(int clientSocket, FILE* fp) {
   for(int i = 1; i <= totalBlock; i++) {
     len_block = fread(send_buf, 1, BUFFER_SIZE, fp);
     send_buf[len_block]='\0';
-    char temp[100] = {0};
+    memset(temp,0,100);
     sprintf(temp, "%d", len_block);
     printf("文件第%d块的长度len_block:%s\n",i,temp);
-    send(clientSocket,(char*)temp,sizeof(temp),0);
+    send(clientSocket,(char*)temp,100,0);
     printf("第%d块的内容:%s\n",i,send_buf);
     send(clientSocket,send_buf,len_block,0);
   }
@@ -182,6 +183,7 @@ char *receive_File(int client) {
   recv(client, recv_buf, sizeof(recv_buf), 0);//先接收客户端要传多少个文件
   //printf("%d\n",(int)strlen(recv_buf));
   int filenum = atoi(recv_buf);
+  filenum = 1;
   printf("客户端要发送%d个文件\n",filenum);
   for(int i = 1; i <= filenum; i++) {
     //遍历指定目录下文件的个数，以确定新接收文件的名字
@@ -200,7 +202,7 @@ char *receive_File(int client) {
     printf("第%d个文件有%d个块\n",i,totalBlock);
     for(int j = 1; j <= totalBlock; j++) {
       char temp[100] = {0};
-      recv(client,temp,sizeof(temp),0);
+      recv(client,temp,100,0);
       lenBlock = atoi(temp);
       printf("第%d个块长度为%d\n",j,lenBlock);
       if((recv(client,recv_buf,lenBlock ,0))!= -1)

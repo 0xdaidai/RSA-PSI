@@ -60,11 +60,13 @@ int main(){
     // send bf
 
     // while(1){
-        printf("等待消息...\n");
-        //将客户端发送过来的消息写入文件
-        filename = receive_File(client);
-        _server_online(&a,1003,filename,"./resource/B.res");
-        submit_sel_File(client,"B.res");
+    printf("等待消息...\n");
+    //将客户端发送过来的消息写入文件
+    filename = receive_File(client);
+    printf("get lambda\n\n\n");
+    _server_online(&a,1003,filename,"./resource/B.res");
+    submit_sel_File(client,"B.res");
+    printf("over\n");
 
     // }
     mpz_clears(a.n, a.d, b.e, b.n, NULL);
