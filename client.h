@@ -98,6 +98,25 @@ int submit_File(int clientSocket) {//提交单个文件
   close(clientSocket);
 }
 
+int submit_sel_File(int clientSocket,char filename[]) {//提交单个文件
+  //将文件内容发送给服务端
+  FILE *fp;
+  char send_buf[BUFFER_SIZE] = {0};
+  char* pre_filename = (char*)malloc(sizeof(char)*100);
+  strcpy(pre_filename,CLIENT_PATH);
+  strcat(pre_filename,filename);
+  fp = fopen(pre_filename, "rb");
+  if(fp == NULL) {
+    printf("您提供的文件不存在，请重新输入！\n");
+    return -1;
+  }
+  printf("已找到您的文件:路径是%s\n",pre_filename);
+  pack_send_File(clientSocket, fp);
+  printf("文件上传成功！\n");
+  close(clientSocket);
+}
+
+
 int submit_Files(int clientSocket) {//提交多个文件，想法是提交某个文件夹下的所有文件
   FILE* fp;
   char filename[100] = {0}, pre_filename[100] = {0};

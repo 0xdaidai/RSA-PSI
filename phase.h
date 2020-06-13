@@ -33,6 +33,18 @@ void _server_base(Private *a, Public *b)
     }
     else
         printf("_server_base 'a' or 'b' is NULL\n");
+    FILE *fp = fopen("./resource/pub-n.key","wb");
+    char p[1024];
+    memset(p,0,1024);
+    mpz_get_str(p,16,b->n);
+    fwrite(p,1,1024,fp);
+    fclose(fp);
+    fp = fopen("./resource/pub-e.key","wb");
+    memset(p,0,1024);
+    mpz_get_str(p,16,b->e);
+    fwrite(p,1,1024,fp);
+    fclose(fp);
+
     return;
 }
 

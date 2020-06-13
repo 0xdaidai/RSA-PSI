@@ -34,8 +34,8 @@ struct bloom
   // change incompatibly at any moment. Client code MUST NOT access or rely
   // on these.
   double bpe;
-  unsigned char * bf;
   int ready;
+  unsigned char * bf;
 };
 
 
@@ -165,6 +165,23 @@ int bloom_reset(struct bloom * bloom);
  *
  */
 const char * bloom_version();
+inline static int test_bit_set_bit(unsigned char * buf,
+                                   unsigned int x, int set_bit)
+{
+  unsigned int byte = x >> 3;
+  unsigned char c = buf[byte];        // expensive memory access
+  unsigned int mask = 1 << (x % 8);
+
+  if (c & mask) {
+    return 1;
+  } else {
+    if (set_bit) {
+      buf[byte] = c | mask;
+    }
+    return 0;
+  }
+}
+
 
 #ifdef __cplusplus
 }

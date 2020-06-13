@@ -27,23 +27,6 @@
 #define STRING(n) #n
 
 
-inline static int test_bit_set_bit(unsigned char * buf,
-                                   unsigned int x, int set_bit)
-{
-  unsigned int byte = x >> 3;
-  unsigned char c = buf[byte];        // expensive memory access
-  unsigned int mask = 1 << (x % 8);
-
-  if (c & mask) {
-    return 1;
-  } else {
-    if (set_bit) {
-      buf[byte] = c | mask;
-    }
-    return 0;
-  }
-}
-
 
 static int bloom_check_add(struct bloom * bloom,
                            const void * buffer, int len, int add)
