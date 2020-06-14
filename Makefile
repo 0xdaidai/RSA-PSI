@@ -5,7 +5,7 @@ CFLAGS = -DDBG -Wall
 
 all:$(res)
 $(res):%:%.c
-	$(CC) $(CFLAGS) $(store) $< -o $@ -lgmp -lm
+	$(CC) $(CFLAGS) $(store) $< -o $@ -lgmp -lm -lcjson
 
 .PHONY : clean
 

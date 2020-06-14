@@ -58,6 +58,8 @@ int main(){
     _server_setup(&bf, &a, 1000, 0.001, "./resource/x.txt");
     printf("1\n");
     // send bf
+    _bloom_write(&bf,"./resource/bloom");
+    submit_sel_File(client,"bloom");
 
     // while(1){
     printf("等待消息...\n");

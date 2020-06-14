@@ -17,7 +17,6 @@
 int main(){
     Public b;mpz_inits(b.n,b.e,NULL);
     struct bloom bf;
-    bloom_init(&bf,1000,0.001);
 
     char send_buf[BUFFER_SIZE] = {0};
     char file_buf[1024];
@@ -47,6 +46,9 @@ int main(){
     printf("base qian\n");
     _client_base(&b, 1000, "./resource/r.txt");
     printf("base\n");
+
+    filename = receive_File(clientSocket);
+    _bloom_read(&bf,filename);
 
     _client_online_send(&b, 1000, "./resource/y.txt", "./resource/r.txt", "./resource/a.txt");
     printf("1\n");

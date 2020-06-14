@@ -5,6 +5,9 @@
 #include <gmp.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cjson/cJSON.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "init.h"
 #include "rand.h"
 #include "bloom.h"
@@ -229,6 +232,66 @@ void _client_update(struct bloom *bf, char *pFile)
     fclose(fp);
     return;
 }
+
+void _bloom_write(struct bloom *bf, char *file)
+{
+    FILE *fp = fopen(file, "w");
+    cJSON *cbf = cJSON_CreateObject();
+    cJSON *tmp = cJSON_CreateArray();
+    for (int i = 0; i < bf->bytes; i++)
+        cJSON_AddNumberToObject(tmp, "...", bf->bf[i]);
+    cJSON_AddNumberToObject(cbf, "entries", bf->entries);
+    cJSON_AddNumberToObject(cbf, "error", bf->error);
+    cJSON_AddNumberToObject(cbf, "bits", bf->bits);
+    cJSON_AddNumberToObject(cbf, "bytes", bf->bytes);
+    cJSON_AddNumberToObject(cbf, "hashes", bf->hashes);
+    cJSON_AddNumberToObject(cbf, "bpe", bf->bpe);
+    cJSON_AddItemToObject(cbf, "bf", tmp);
+    cJSON_AddNumberToObject(cbf, "ready", bf->ready);
+    char *str = cJSON_Print(cbf);
+    fputs(str, fp);
+    free(str);
+    fclose(fp);
+    return;
+}
+
+void _bloom_read(struct bloom *bf, char *file)
+{
+    FILE *fp = fopen(file, "rb");
+    int filesize = 0;
+    struct stat buf;
+    stat(file, &buf);
+    filesize = buf.st_size;
+    char *str = (char *)malloc(sizeof(char) * filesize);
+    fread(str, 1, filesize, fp);
+    cJSON *root = cJSON_Parse(str), *tmp, *t;
+    tmp = cJSON_GetObjectItem(root, "bits");
+    bf->bits = tmp->valueint;
+    tmp = cJSON_GetObjectItem(root, "bpe");
+    bf->bpe = tmp->valuedouble;
+    tmp = cJSON_GetObjectItem(root, "bytes");
+    bf->bytes = tmp->valueint;
+    tmp = cJSON_GetObjectItem(root, "entries");
+    bf->entries = tmp->valueint;
+    tmp = cJSON_GetObjectItem(root, "error");
+    bf->error = tmp->valuedouble;
+    tmp = cJSON_GetObjectItem(root, "hashes");
+    bf->hashes = tmp->valueint;
+    tmp = cJSON_GetObjectItem(root, "ready");
+    bf->ready = tmp->valueint;
+    bf->bf = (unsigned char *)malloc(sizeof(char) * bf->bytes);
+    t = cJSON_GetObjectItem(root, "bf");
+    for (int i = 0; i < bf->bytes; i++)
+    {
+        tmp = cJSON_GetArrayItem(t, i);
+        bf->bf[i] = tmp->valueint;
+    }
+    free(str);
+    cJSON_Delete(root);
+    fclose(fp);
+    return;
+}
+
 
 /*
 int main()
