@@ -209,6 +209,7 @@ char *receive_File(int client) {
     totalBlock = atoi(recv_buf);
     printf("第%d个文件有%d个块\n",i,totalBlock);
     for(int j = 1; j <= totalBlock; j++) {
+      memset(recv_buf,0,BUFFER_SIZE);
       //memset(temp,0,100);
       //recv(client,temp,100,0);
       //printf("块长度temp = %s\n",temp);
@@ -219,6 +220,7 @@ char *receive_File(int client) {
 	printf("..........接收成功..........\n");
       else
 	printf("接收失败!\n");
+      printf("%s\n",recv_buf );
       fwrite(recv_buf, 1, lenBlock, fp);
     }
     fclose(fp);
