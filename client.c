@@ -23,8 +23,8 @@ int main()
     char send_buf[BUFFER_SIZE] = {0};
     char file_buf[1024];
     char *filename;
-    int clientSocket = connect_to_Server((char *)"39.96.57.195", SERVER_PORT);
-    // int clientSocket = connect_to_Server((char *)"127.0.0.1", SERVER_PORT);
+    // int clientSocket = connect_to_Server((char *)"39.96.57.195", SERVER_PORT);
+    int clientSocket = connect_to_Server((char *)"127.0.0.1", SERVER_PORT);
     if (clientSocket == -1)
         return 0;
     printf("已连接到服务器...\n");
