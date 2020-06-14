@@ -21,9 +21,18 @@ int main(){
     char send_buf[BUFFER_SIZE] = {0};
     char file_buf[1024];
     char *filename;
-    int clientSocket = connect_to_Server((char*)"39.96.57.195",SERVER_PORT);
+    int clientSocket = connect_to_Server((char*)"127.0.0.1",SERVER_PORT);
+    // int clientSocket = connect_to_Server((char*)"39.96.57.195",SERVER_PORT);
     if(clientSocket == -1) return 0;
     printf("已连接到服务器...\n");
+    printf("base qian\n");
+    _client_base(&b, 1000, "./resource/r.txt");
+    printf("base\n");
+    filename = receive_File(clientSocket);
+    rename(filename,"key-n.pub");
+    filename = receive_File(clientSocket);
+    rename(filename,"key-e.pub");
+
 
     memset(file_buf,0,1024);
     FILE *fp = fopen("./resource/pub-n.key","rb");
@@ -43,9 +52,6 @@ int main(){
     printf("b.e:%s\n", file_buf);       
     mpz_set_str(b.e,file_buf,16);
 
-    printf("base qian\n");
-    _client_base(&b, 1000, "./resource/r.txt");
-    printf("base\n");
 
     filename = receive_File(clientSocket);
     _bloom_read(&bf,filename);

@@ -68,7 +68,9 @@ int pack_send_File(int clientSocket, FILE* fp) {
   totalBlock = len_file % BUFFER_SIZE == 0 ? len_file / BUFFER_SIZE : ((len_file / BUFFER_SIZE) + 1); //除最后一快的总块数
   printf("文件的总块数totalBlock:%d\n",totalBlock);
   sprintf(send_buf, "%d", totalBlock);
-  send(clientSocket,(char*)send_buf,sizeof(send_buf),0);
+  send(clientSocket,(char*)send_buf,BUFFER_SIZE,0);
+  memset(send_buf,0,BUFFER_SIZE);
+
   for(int i = 1; i <= totalBlock; i++) {
     memset(send_buf,0,BUFFER_SIZE);
     len_block = fread(send_buf, 1, BUFFER_SIZE, fp);
@@ -78,7 +80,7 @@ int pack_send_File(int clientSocket, FILE* fp) {
     printf("文件第%d块的长度len_block:%d\n",i,len_block);
     // send(clientSocket,(char*)temp,100,0);
     // printf("第%d块的内容:%s\n",i,send_buf);
-    send(clientSocket,send_buf,len_block,0);
+    send(clientSocket,send_buf,BUFFER_SIZE,0);
   }
   fclose(fp);
 }
@@ -185,8 +187,9 @@ char *receive_File(int client) {
   memset(pathname,0,200);
   int cnt;
   int totalBlock, lenBlock;
+  int buf_l = 0;
   recv(client, recv_buf, BUFFER_SIZE, 0);//先接收客户端要传多少个文件
-  printf("filenum:%s\n", recv_buf);
+  buf_l = strlen(recv_buf);
   int filenum = atoi(recv_buf);
   filenum = 1;
   printf("客户端要发送%d个文件\n",filenum);
@@ -220,7 +223,7 @@ char *receive_File(int client) {
 	printf("..........接收成功..........\n");
       else
 	printf("接收失败!\n");
-      printf("%s\n",recv_buf );
+      printf("recvbuf:%s\n",recv_buf );
       fwrite(recv_buf, 1, lenBlock, fp);
     }
     fclose(fp);

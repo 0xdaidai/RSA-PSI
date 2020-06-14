@@ -54,19 +54,21 @@ int main(){
 
     _server_base(&a, &b);
     printf("base up\n");
+    submit_sel_File(client,"key-n.pub");
+    submit_sel_File(client,"key-e.pub");
 
     _server_setup(&bf, &a, 1000, 0.001, "./resource/x.txt");
     printf("1\n");
     // send bf
-    // _bloom_write(&bf,"./resource/bloom");
-    // submit_sel_File(client,"bloom");
+    _bloom_write(&bf,"./resource/bloom");
+    submit_sel_File(client,"bloom");
 
     // while(1){
     printf("等待消息...\n");
     //将客户端发送过来的消息写入文件
     filename = receive_File(client);
     printf("get lambda\n\n\n");
-    _server_online(&a,1003,filename,"./resource/B.res");
+    _server_online(&a,1000,filename,"./resource/B.res");
     submit_sel_File(client,"B.res");
     printf("over\n");
 
