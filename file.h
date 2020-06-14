@@ -70,6 +70,7 @@ int pack_send_File(int clientSocket, FILE* fp) {
   sprintf(send_buf, "%d", totalBlock);
   send(clientSocket,(char*)send_buf,sizeof(send_buf),0);
   for(int i = 1; i <= totalBlock; i++) {
+    memset(send_buf,0,BUFFER_SIZE);
     len_block = fread(send_buf, 1, BUFFER_SIZE, fp);
     send_buf[len_block]='\0';
     // memset(temp,0,100);
