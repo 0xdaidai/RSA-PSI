@@ -59,6 +59,7 @@ int main()
     printf("send pub-n start\n");
     submit_sel_File(client, "pub-n.key");
     printf("send pub-n finish\n");
+    sleep(1);
     printf("send pub-e start\n");
     submit_sel_File(client, "pub-e.key");
     printf("send pub-e finish\n");

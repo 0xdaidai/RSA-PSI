@@ -1,7 +1,7 @@
 CC = gcc
 store = MurmurHash2.c bloom.c
 res = client server
-CFLAGS = -DDBG -Wall
+CFLAGS = -DDBG -Wall -std=gnu99
 
 all:$(res)
 $(res):%:%.c

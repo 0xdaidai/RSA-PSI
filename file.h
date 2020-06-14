@@ -59,6 +59,7 @@ int get_File_Num(char* pathname) {
 int pack_send_File(int clientSocket, FILE* fp) {
   char temp[100] = {0};
   char send_buf[BUFFER_SIZE] = {0};
+  memset(send_buf,0,BUFFER_SIZE);
   int len_file, len_block;
   int totalBlock;
   fseek(fp,0,2);//将指针放到文件末尾
@@ -69,9 +70,12 @@ int pack_send_File(int clientSocket, FILE* fp) {
   printf("文件的总块数totalBlock:%d\n",totalBlock);
   sprintf(send_buf, "%d", totalBlock);
   send(clientSocket,(char*)send_buf,BUFFER_SIZE,0);
-  memset(send_buf,0,BUFFER_SIZE);
 
   for(int i = 1; i <= totalBlock; i++) {
+      if(i%100==1&&i>100){
+        printf("sleep\n");
+          sleep(1);
+      }
     memset(send_buf,0,BUFFER_SIZE);
     len_block = fread(send_buf, 1, BUFFER_SIZE, fp);
     send_buf[len_block]='\0';
@@ -191,8 +195,7 @@ char *receive_File(int client) {
   recv(client, recv_buf, BUFFER_SIZE, 0);//先接收客户端要传多少个文件
   buf_l = strlen(recv_buf);
   int filenum = atoi(recv_buf);
-  filenum = 1;
-  printf("客户端要发送%d个文件\n",filenum);
+  printf("客户端要发送%s个文件\n",recv_buf);
   for(int i = 1; i <= filenum; i++) {
     //遍历指定目录下文件的个数，以确定新接收文件的名字
     cnt = get_File_Num((char*)SERVER_PATH);//得到服务器目录下的文件个数，方便编号命名
