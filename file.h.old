@@ -56,15 +56,9 @@ int get_File_Num(char* pathname) {
   return cnt;
 }
 
-int pack_send_File(int clientSocket, char name[]) {
+int pack_send_File(int clientSocket, FILE* fp) {
+  char temp[100] = {0};
   char send_buf[BUFFER_SIZE] = {0};
-  char* pre_filename = (char*)malloc(sizeof(char)*100);
-  strcpy(pre_filename,CLIENT_PATH);
-  strcat(pre_filename,name);
-  FILE *fp = fopen(pre_filename,"rb");
-  strcpy(send_buf,name);
-  send(clientSocket,(char*)send_buf,BUFFER_SIZE,0);
-  printf("send file name: %s\n",send_buf);
   memset(send_buf,0,BUFFER_SIZE);
   int len_file, len_block;
   int totalBlock;
@@ -78,35 +72,75 @@ int pack_send_File(int clientSocket, char name[]) {
   send(clientSocket,(char*)send_buf,BUFFER_SIZE,0);
 
   for(int i = 1; i <= totalBlock; i++) {
+      // if(i%100==1&&i>100){
+        // printf("sleep\n");
+          // sleep(1);
+      // }
     memset(send_buf,0,BUFFER_SIZE);
     len_block = fread(send_buf, 1, BUFFER_SIZE, fp);
     send_buf[len_block]='\0';
+    // memset(temp,0,100);
+    // sprintf(temp, "%d", len_block);
     printf("文件第%d块的长度len_block:%d\n",i,len_block);
+    // send(clientSocket,(char*)temp,100,0);
+    // printf("第%d块的内容:%s\n",i,send_buf);
     send(clientSocket,send_buf,BUFFER_SIZE,0);
   }
   fclose(fp);
-  return 1;
 }
 
+int submit_File(int clientSocket) {//提交单个文件
+  //将文件内容发送给服务端
+  FILE *fp;
+  char send_buf[BUFFER_SIZE] = {0};
+  char filename[100] = {0};
+  char* pre_filename = (char*)malloc(sizeof(char)*100);
+  while(1){
+    strcpy(pre_filename,CLIENT_PATH);
+    printf("请输入你要提交的文件名: ");
+    scanf("%[^\n]%*c",filename);
+    strcat(pre_filename,filename);
+    fp = fopen(pre_filename, "rb");
+    if(fp == NULL) {
+      printf("您提供的文件不存在，请重新输入！\n");
+      continue;
+    }
+    break;
+  }
+  printf("已找到您的文件:路径是%s\n",pre_filename);
+  pack_send_File(clientSocket, fp);
+  printf("文件上传成功！\n");
+  close(clientSocket);
+}
 
 int submit_sel_File(int clientSocket,char filename[]) {//提交单个文件
   //将文件内容发送给服务端
+  FILE *fp;
   char send_buf[BUFFER_SIZE] = {0};
   memset(send_buf,0,1024);
   strcpy(send_buf,"1");
   send(clientSocket,(char*)send_buf,1024,0);
 
-  // printf("已找到您的文件:路径是%s\n",pre_filename);
-  pack_send_File(clientSocket, filename);
+  char* pre_filename = (char*)malloc(sizeof(char)*100);
+  strcpy(pre_filename,CLIENT_PATH);
+  strcat(pre_filename,filename);
+  fp = fopen(pre_filename, "rb");
+  if(fp == NULL) {
+    printf("您提供的文件不存在，请重新输入！\n");
+    return -1;
+  }
+  printf("已找到您的文件:路径是%s\n",pre_filename);
+  pack_send_File(clientSocket, fp);
   printf("文件上传成功！\n");
-  return 1;
 }
 
 
 int submit_Files(int clientSocket) {//提交多个文件，想法是提交某个文件夹下的所有文件
-  char pre_filename[100] = {0};
+  FILE* fp;
+  char filename[100] = {0}, pre_filename[100] = {0};
   struct dirent* ptr;
   DIR* path = NULL;
+  char send_buf[BUFFER_SIZE] = {0};
   path = opendir((char*)CLIENT_PATH);
   while((ptr=readdir(path)) != NULL) {
     if(strcmp(ptr->d_name,".")==0||strcmp(ptr->d_name,"..")==0) {
@@ -116,11 +150,11 @@ int submit_Files(int clientSocket) {//提交多个文件，想法是提交某个
       printf("%s\n",ptr->d_name);
       strcpy(pre_filename,CLIENT_PATH);
       strcat(pre_filename,ptr->d_name);
-      pack_send_File(clientSocket, ptr->d_name);
+      fp = fopen(pre_filename, "rb");
+      pack_send_File(clientSocket, fp);
       printf("文件%s上传成功！\n",ptr->d_name);
     }
   }
-  return 1;
 }
 
 int init_Server(int port) {
@@ -150,20 +184,24 @@ int init_Server(int port) {
 }
 
 char *receive_File(int client) {
-  char filename[200] = {0};
+  char temp[100] = {0};
   char recv_buf[BUFFER_SIZE] = {0};
+  char filename[200] = {0};
   char *pathname =(char *)malloc(sizeof(char) * 200);
   memset(pathname,0,200);
   int cnt;
   int totalBlock, lenBlock;
+  int buf_l = 0;
   recv(client, recv_buf, BUFFER_SIZE, 0);//先接收客户端要传多少个文件
+  buf_l = strlen(recv_buf);
   int filenum = atoi(recv_buf);
   printf("客户端要发送%s个文件\n",recv_buf);
   for(int i = 1; i <= filenum; i++) {
-    recv(client,recv_buf,BUFFER_SIZE, 0);//get file name
-    printf("recv_file_name: %s\n", recv_buf);
+    //遍历指定目录下文件的个数，以确定新接收文件的名字
+    cnt = get_File_Num((char*)SERVER_PATH);//得到服务器目录下的文件个数，方便编号命名
     FILE* fp;
-    sprintf(filename, "%s", recv_buf);
+    memset(filename, 0, sizeof(filename));
+    sprintf(filename, "%d", cnt+1);
     strcpy(pathname, SERVER_PATH);
     strcat(pathname,filename);
     printf("pathname: %s\n",pathname);
@@ -178,6 +216,10 @@ char *receive_File(int client) {
     printf("第%d个文件有%d个块\n",i,totalBlock);
     for(int j = 1; j <= totalBlock; j++) {
       memset(recv_buf,0,BUFFER_SIZE);
+      //memset(temp,0,100);
+      //recv(client,temp,100,0);
+      //printf("块长度temp = %s\n",temp);
+      //lenBlock = atoi(temp);
       lenBlock = 1024;
       printf("第%d个块长度为%d\n",j,lenBlock);
       if((recv(client,recv_buf,lenBlock ,0))!= -1)
