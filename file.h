@@ -103,18 +103,23 @@ int submit_sel_File(int clientSocket,char filename[]) {//提交单个文件
 }
 
 
-int submit_Files(int clientSocket) {//提交多个文件，想法是提交某个文件夹下的所有文件
+int submit_Files(int clientSocket,char send_path[]) {//提交多个文件，想法是提交某个文件夹下的所有文件
+  char send_buf[BUFFER_SIZE] = {0};
+  memset(send_buf,0,1024);
+  int filenum = get_File_Num((char*)send_path);
+  sprintf(send_buf, "%d", filenum);
+  printf("send %d files\n", filenum);
+  send(clientSocket, send_buf, sizeof(send_buf), 0);
   char pre_filename[100] = {0};
   struct dirent* ptr;
   DIR* path = NULL;
-  path = opendir((char*)CLIENT_PATH);
+  path = opendir(send_path);
   while((ptr=readdir(path)) != NULL) {
     if(strcmp(ptr->d_name,".")==0||strcmp(ptr->d_name,"..")==0) {
       continue;
     }
     if(ptr->d_type==DT_REG) {
-      printf("%s\n",ptr->d_name);
-      strcpy(pre_filename,CLIENT_PATH);
+      strcpy(pre_filename,send_path);
       strcat(pre_filename,ptr->d_name);
       pack_send_File(clientSocket, ptr->d_name);
       printf("文件%s上传成功！\n",ptr->d_name);
@@ -163,7 +168,7 @@ char *receive_File(int client) {
     recv(client,recv_buf,BUFFER_SIZE, 0);//get file name
     printf("recv_file_name: %s\n", recv_buf);
     FILE* fp;
-    sprintf(filename, "%s", recv_buf);
+    strcpy(filename, recv_buf);
     strcpy(pathname, SERVER_PATH);
     strcat(pathname,filename);
     printf("pathname: %s\n",pathname);
